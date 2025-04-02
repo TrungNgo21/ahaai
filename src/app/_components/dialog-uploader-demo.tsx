@@ -27,6 +27,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { FileUploader } from "@/components/file-uploader"
+import { useCreateMenuItem } from "../ai/services/actions"
 
 const schema = z.object({
   images: z.array(z.instanceof(File)),
@@ -56,6 +57,8 @@ export function DialogUploaderDemo({ setDishes }: DialogUploaderDemoProps) {
     },
   })
 
+  const { trigger, isMutating } = useCreateMenuItem();
+
   function onSubmit(input: Schema) {
     setLoading(true)
 
@@ -72,12 +75,12 @@ export function DialogUploaderDemo({ setDishes }: DialogUploaderDemoProps) {
         const menuItems = JSON.parse(data.text) as Dish[];
 
         // Use Promise.all to wait for all fetch requests to complete
-        await Promise.all(menuItems.map((item) => 
-          fetch("/api/menuItem", {
-            body: JSON.stringify(item),
-            method: "POST",
-          })
+        const result = await Promise.all(menuItems.map((item) => 
+          trigger(item)
         ));
+
+        setDishes(result);
+
 
         setLoading(false)
         return "Images uploaded"

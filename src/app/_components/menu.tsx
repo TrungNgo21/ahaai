@@ -1,11 +1,6 @@
 "use client"
 
-import { useState } from "react"
-import { type Dish } from "@/types"
-import { ChevronDown, ChevronUp } from "lucide-react"
-
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -22,20 +17,12 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { DialogUploaderDemo } from "@/app/_components/dialog-uploader-demo"
+import { useMenuItem } from "../ai/services/queries"
+import { Fragment } from "react"
 
-import useMenuItemData from "../ai/_hooks/use-menu-item-data"
 
 export default function MenuInterface() {
-  const [expandedDish, setExpandedDish] = useState<string | null>(null)
-  const { menuItems, setMenuItems } = useMenuItemData()
-
-  const toggleExpand = (dishName: string) => {
-    if (expandedDish === dishName) {
-      setExpandedDish(null)
-    } else {
-      setExpandedDish(dishName)
-    }
-  }
+  const { data, isLoading, error, mutate } = useMenuItem();
 
   return (
     <div className="container mx-auto py-6">
@@ -45,7 +32,9 @@ export default function MenuInterface() {
             <CardTitle>Menu Items</CardTitle>
             <CardDescription>Manage your restaurant menu items</CardDescription>
           </div>
-          <DialogUploaderDemo setDishes={setMenuItems} />
+          <DialogUploaderDemo setDishes={(dishes) => {
+            if (dishes) mutate();
+          }} />
         </CardHeader>
         <CardContent>
           <Table>
@@ -58,29 +47,16 @@ export default function MenuInterface() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {menuItems.map((dish) => (
-                <>
-                  <TableRow key={dish.dishName}>
+              {data && data.map((dish) => (
+                <Fragment key={dish.dishName + dish.size + dish.price + Date.now().toString()}>
+                  <TableRow>
                     <TableCell className="font-medium">
                       {dish.dishName}
                     </TableCell>
                     <TableCell>{dish.size || "N/A"}</TableCell>
                     <TableCell>${dish.price.toFixed(2)}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => toggleExpand(dish.dishName)}
-                      >
-                        {expandedDish === dish.dishName ? (
-                          <ChevronUp className="h-4 w-4" />
-                        ) : (
-                          <ChevronDown className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </TableCell>
                   </TableRow>
-                  <TableRow key={dish.dishName + Date.now().toString()}>
+                  <TableRow >
                     <TableCell colSpan={4} className="bg-muted/50">
                       <div className="p-2">
                         <div className="mb-2">
@@ -98,7 +74,7 @@ export default function MenuInterface() {
                       </div>
                     </TableCell>
                   </TableRow>
-                </>
+                </Fragment>
               ))}
             </TableBody>
           </Table>

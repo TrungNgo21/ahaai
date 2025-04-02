@@ -1,4 +1,4 @@
-import { dishSchema } from "./../../../types/index"
+import { dishSchema } from "../../../types/index"
 
 import "server-only"
 
